@@ -2,7 +2,7 @@ from collections import defaultdict
 import logging
 from pathlib import Path
 import time
-from typing import  Tuple
+from typing import Tuple
 import requests
 import json
 import re
@@ -143,16 +143,13 @@ def main():
                 latest_versions[tag] = version
         except Exception as e:
             logging.error(e)
-    Path('bucket').mkdir(exist_ok=True)
+    Path("bucket").mkdir(exist_ok=True)
     for tag_name_short, version in latest_versions.items():
-        with open(
-            f"bucket/mingw_winlib_{tag_name_short}_llvm.json", "w", encoding="utf-8"
-        ) as w:
-            json.dump(version.gen_scoop_json(True), w, indent=2)
-        with open(
-            f"bucket/mingw_winlib_{tag_name_short}_without_llvm.json", "w", encoding="utf-8"
-        ) as w:
-            json.dump(version.gen_scoop_json(False), w, indent=2)
+        for with_llvm in [True, False]:
+            fn = f"bucket/mingw_winlib_{tag_name_short}{'_without' if not with_llvm else ''}_llvm.json"
+            with open(fn, "w", encoding="utf-8") as w:
+                json.dump(version.gen_scoop_json(True), w, indent=2)
+                w.write('\n')
 
 
 if __name__ == "__main__":
