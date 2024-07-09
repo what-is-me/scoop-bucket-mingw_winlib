@@ -1,0 +1,31 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 6'
+name: Update MingW
+jobs:
+  update:
+    name: update
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip' # caching pip dependencies
+      - run: pip install -r requirements.txt
+      - run: python workflow-scripts/auto-update/mingw-winlibs.py
+      - name: Commit files
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -a -m "Update Mingw version"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}

@@ -1,6 +1,6 @@
 param(
     # overwrite upstream param
-    [String]$upstream = "<username>/<bucketname>:main"
+    [String]$upstream = "what-is-me/scoop-bucket-mingw_winlib:main"
 )
 
 if (!$env:SCOOP_HOME) { $env:SCOOP_HOME = Convert-Path (scoop prefix scoop) }
