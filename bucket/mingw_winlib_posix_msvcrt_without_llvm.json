@@ -1,17 +1,17 @@
 {
-  "version": "GCC14.1.0_MINGW12.0.0_r2",
+  "version": "GCC14.1.0_LLVM18.1.8_MINGW12.0.0_r3",
   "description": "GNU Compiler Collection (WinLibs build)",
   "homepage": "https://winlibs.com",
   "license": "GPL-3.0-or-later,ZPL-2.1,BSD-2-Clause,...",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/14.1.0posix-18.1.7-12.0.0-msvcrt-r2/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64msvcrt-12.0.0-r2.7z",
-      "hash": "cdfd89108e5a7180f277bb523c05509315325d0ca08b0de7e2e2860398333d83",
+      "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/14.1.0posix-18.1.8-12.0.0-msvcrt-r3/winlibs-x86_64-posix-seh-gcc-14.1.0-llvm-18.1.8-mingw-w64msvcrt-12.0.0-r3.7z",
+      "hash": "81275f701250ca3d37f0802ae8ece93c1d11f2bcd671c3a7fce9e7baecb6aa92",
       "extract_dir": "mingw64"
     },
     "32bit": {
-      "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/14.1.0posix-18.1.7-12.0.0-msvcrt-r2/winlibs-i686-posix-dwarf-gcc-14.1.0-mingw-w64msvcrt-12.0.0-r2.7z",
-      "hash": "bc431d1ab320adb98c0a24c6cc06a445d7e253c08721d64547df38454dc25b91",
+      "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/14.1.0posix-18.1.8-12.0.0-msvcrt-r3/winlibs-i686-posix-dwarf-gcc-14.1.0-llvm-18.1.8-mingw-w64msvcrt-12.0.0-r3.7z",
+      "hash": "f80891c67e7504f7c31749306491be085ac6b8a8661d3f5c7efdd80eb52fe215",
       "extract_dir": "mingw32"
     }
   },
@@ -19,15 +19,15 @@
   "env_add_path": "bin",
   "checkver": {
     "regex": "(?<gcc>[\\d.]+)posix-(?<llvm>[\\d.]+)-(?<mingw>[\\d.]+)-msvcrt-r(?<release>\\d+)",
-    "replace": "GCC${gcc}_MINGW${mingw}_r${release}"
+    "replace": "GCC${gcc}_LLVM${llvm}_MINGW${mingw}_r${release}"
   },
   "autoupdate": {
     "architecture": {
       "64bit": {
-        "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/$matchGccposix-$matchLlvm-$matchMingw-msvcrt-r$matchRelease/winlibs-x86_64-posix-seh-gcc-$matchGcc-mingw-w64msvcrt-$matchMingw-r$matchRelease.7z"
+        "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/$matchGccposix-$matchLlvm-$matchMingw-msvcrt-r$matchRelease/winlibs-x86_64-posix-seh-gcc-$matchGcc-llvm-$matchLlvm-mingw-w64msvcrt-$matchMingw-r$matchRelease.7z"
       },
       "32bit": {
-        "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/$matchGccposix-$matchLlvm-$matchMingw-msvcrt-r$matchRelease/winlibs-i686-posix-dwarf-gcc-$matchGcc-mingw-w64msvcrt-$matchMingw-r$matchRelease.7z"
+        "url": "https://github.com/brechtsanders/winlibs_mingw/releases/download/$matchGccposix-$matchLlvm-$matchMingw-msvcrt-r$matchRelease/winlibs-i686-posix-dwarf-gcc-$matchGcc-llvm-$matchLlvm-mingw-w64msvcrt-$matchMingw-r$matchRelease.7z"
       }
     },
     "hash": {
