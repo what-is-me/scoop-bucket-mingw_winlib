@@ -148,7 +148,7 @@ def main():
         for with_llvm in [True, False]:
             fn = f"bucket/mingw_winlib_{tag_name_short}{'_without' if not with_llvm else ''}_llvm.json"
             with open(fn, "w", encoding="utf-8") as w:
-                json.dump(version.gen_scoop_json(True), w, indent=2)
+                json.dump(version.gen_scoop_json(with_llvm), w, indent=4)
                 w.write('\n')
 
 
