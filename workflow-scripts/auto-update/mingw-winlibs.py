@@ -30,6 +30,10 @@ class WinLibVersion:
         self.mingw_version = self.__get_version_tuple(mingw_version)
         self.runtime_library = runtime_library.lower()
         self.release_num = int(release_num)
+        self.assets = None
+
+    def set_assets(self, assets):
+        self.assets = assets
 
     def get_gcc_version(self) -> str:
         return self.__tuple_to_version(self.gcc_version)
@@ -60,14 +64,25 @@ class WinLibVersion:
         zip_name = f"winlibs-{'x86_64'if arch_64 else'i686'}-{self.threading_model}-{'seh'if arch_64 else'dwarf'}-gcc-{self.get_gcc_version()}{f'-llvm-{self.get_llvm_version()}'if with_llvm else ''}-mingw-w64{self.runtime_library}-{self.get_mingw_version()}-r{self.release_num}.7z"
         return f"https://github.com/brechtsanders/winlibs_mingw/releases/download/{tag_name}/{zip_name}"
 
-    def get_hash(self, arch_64: bool = True, with_llvm: bool = True) -> str:
-        sha = requests.get(self.get_url(arch_64, with_llvm) + ".sha256").text.split(
+    def get_hash_from_file(self, arch_64: bool = True, with_llvm: bool = True) -> str:
+        sha256_file_url = self.get_url(arch_64, with_llvm) + ".sha256"
+        sha = requests.get(sha256_file_url).text.split(
             " "
         )[0]
         time.sleep(1)
         if len(sha) < 10:
             raise Exception(f"get {self.get_url(arch_64, with_llvm)}.sha256 fail")
         return sha
+
+    def get_hash(self, arch_64: bool = True, with_llvm: bool = True) -> str:
+        url = self.get_url(arch_64, with_llvm)
+        for asset in self.assets:
+            if asset["browser_download_url"] == url:
+                sha256_str = asset["digest"]
+                if sha256_str is None:
+                    return self.get_hash_from_file(arch_64, with_llvm)
+                return sha256_str.removeprefix("sha256:")
+        return ""
 
     def gen_scoop_json(self, with_llvm: bool = True):
         return {
@@ -111,7 +126,7 @@ class WinLibVersion:
         }
 
 
-def get_version(name: str, **kargvs) -> WinLibVersion | None:
+def get_version_with_llvm(name: str) -> WinLibVersion | None:
     if (
         len(
             version_from_name := re.findall(
@@ -125,31 +140,55 @@ def get_version(name: str, **kargvs) -> WinLibVersion | None:
     return None
 
 
+def get_version_without_llvm(name: str) -> WinLibVersion | None:
+    if (
+        len(
+            version_from_name := re.findall(
+                r"GCC (\d+\.\d+\.\d+) \(([A-Z]+) threads\) \+ MinGW-w64 (\d+\.\d+\.\d+) ([A-Z]+) \(release (\d+)\)",
+                name,
+            )
+        )
+        == 1
+    ):
+        version_tuple_without_llvm = version_from_name[0]
+        return WinLibVersion(
+            *version_tuple_without_llvm[:2], "0.0.0", *version_tuple_without_llvm[2:]
+        )
+    return None
+
+
+def get_version(with_llvm: bool, name: str, **kargvs) -> WinLibVersion | None:
+    if with_llvm:
+        return get_version_with_llvm(name)
+    return get_version_without_llvm(name)
+
+
 def main():
     tag_list = requests.get(
         "https://api.github.com/repos/brechtsanders/winlibs_mingw/releases"
     ).json()
-    latest_versions = defaultdict(WinLibVersion)
-    for tag_src in tag_list:
-        try:
-            version = get_version(**tag_src)
-            if version is None:
-                continue
-            tag = version.get_tag()
-            if (
-                version.get_comparable_version_tuple()
-                > latest_versions[tag].get_comparable_version_tuple()
-            ):
-                latest_versions[tag] = version
-        except Exception as e:
-            logging.error(e)
-    Path("bucket").mkdir(exist_ok=True)
-    for tag_name_short, version in latest_versions.items():
-        for with_llvm in [True, False]:
-            fn = f"bucket/mingw_winlib_{tag_name_short}{'_without' if not with_llvm else ''}_llvm.json"
+    for with_llvm in [True, False]:
+        latest_versions = defaultdict(WinLibVersion)
+        for tag_src in tag_list:
+            try:
+                version = get_version(with_llvm=with_llvm, **tag_src)
+                if version is None:
+                    continue
+                tag = version.get_tag()
+                if (
+                    version.get_comparable_version_tuple()
+                    > latest_versions[tag].get_comparable_version_tuple()
+                ):
+                    latest_versions[tag] = version
+                    version.set_assets(tag_src["assets"])
+            except Exception as e:
+                logging.error(e)
+        Path("bucket").mkdir(exist_ok=True)
+        for tag_name_short, version in latest_versions.items():
+            fn = f"bucket/mingw_winlib_{tag_name_short}{'_llvm' if with_llvm else ''}.json"
             with open(fn, "w", encoding="utf-8") as w:
                 json.dump(version.gen_scoop_json(with_llvm), w, indent=4)
-                w.write('\n')
+                w.write("\n")
 
 
 if __name__ == "__main__":
