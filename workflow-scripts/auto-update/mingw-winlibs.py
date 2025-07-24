@@ -60,15 +60,13 @@ class WinLibVersion:
             return f"GCC{self.get_gcc_version()}_MINGW{self.get_mingw_version()}_r{self.release_num}"
 
     def get_url(self, arch_64: bool = True, with_llvm: bool = True) -> str:
-        tag_name = f"{self.get_gcc_version()}{self.threading_model}-{self.get_llvm_version()}-{self.get_mingw_version()}-{self.runtime_library}-r{self.release_num}"
+        tag_name = f"{self.get_gcc_version()}{self.threading_model}{'-'+self.get_llvm_version() if with_llvm else ''}-{self.get_mingw_version()}-{self.runtime_library}-r{self.release_num}"
         zip_name = f"winlibs-{'x86_64'if arch_64 else'i686'}-{self.threading_model}-{'seh'if arch_64 else'dwarf'}-gcc-{self.get_gcc_version()}{f'-llvm-{self.get_llvm_version()}'if with_llvm else ''}-mingw-w64{self.runtime_library}-{self.get_mingw_version()}-r{self.release_num}.7z"
         return f"https://github.com/brechtsanders/winlibs_mingw/releases/download/{tag_name}/{zip_name}"
 
     def get_hash_from_file(self, arch_64: bool = True, with_llvm: bool = True) -> str:
         sha256_file_url = self.get_url(arch_64, with_llvm) + ".sha256"
-        sha = requests.get(sha256_file_url).text.split(
-            " "
-        )[0]
+        sha = requests.get(sha256_file_url).text.split(" ")[0]
         time.sleep(1)
         if len(sha) < 10:
             raise Exception(f"get {self.get_url(arch_64, with_llvm)}.sha256 fail")
